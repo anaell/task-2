@@ -1,98 +1,263 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Intelligence Query Engine (anaell/task-2)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+---
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+**Project**: Intelligence Query Engine  
+**Repository**: `anaell/task-2`  
+**Purpose**: Turn an existing backend that collects and stores profile data into a production-ready, queryable intelligence API. Core capabilities include **advanced filtering**, **combined filters**, **sorting**, **pagination**, and a **deterministic rule‑based natural language query parser** (no AI/LLMs).
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+### Features
+
+- **Advanced filtering** by gender, age, age group, country, and confidence thresholds.
+- **Combined filters** applied with logical AND.
+- **Sorting** by `age`, `created_at`, or `gender_probability`.
+- **Pagination** with `page` and `limit` (default `limit = 10`, max `50`).
+- **Natural language query endpoint** that converts plain English into structured filters using deterministic rules only.
+- **Strict, consistent error responses** and UTC ISO 8601 timestamps.
+- **CORS** enabled: `Access-Control-Allow-Origin: *`.
+
+---
+
+#### Quick start
 
 ```bash
-$ pnpm install
+# clone
+git clone https://github.com/anaell/task-2.git
+cd task-2
+
+# install
+npm install
+
+# configure environment variables (DB connection, etc.)
+# run migrations and seed
+npm run migrate
+npm run seed
+
+# start server
+npm run start
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ pnpm run start
+#### Database schema
 
-# watch mode
-$ pnpm run start:dev
+**Table**: `profiles` (must match exactly)
 
-# production mode
-$ pnpm run start:prod
+| **Field**               | **Type**         | **Notes**                      |
+| ----------------------- | ---------------- | ------------------------------ |
+| **id**                  | UUID v7          | Primary key                    |
+| **name**                | VARCHAR + UNIQUE | Person's full name             |
+| **gender**              | VARCHAR          | "male" or "female"             |
+| **gender_probability**  | FLOAT            | Confidence score               |
+| **age**                 | INT              | Exact age                      |
+| **age_group**           | VARCHAR          | child, teenager, adult, senior |
+| **country_id**          | VARCHAR(2)       | ISO code (NG, AO, etc.)        |
+| **country_name**        | VARCHAR          | Full country name              |
+| **country_probability** | FLOAT            | Confidence score               |
+| **created_at**          | TIMESTAMP        | Auto-generated (UTC ISO 8601)  |
+
+## Notes
+
+- All IDs must be **UUID v7**.
+- All timestamps must be **UTC ISO 8601**.
+- Use unique constraints or upsert logic to prevent duplicate records when seeding.
+
+---
+
+### Data seeding
+
+- Seed the database with the provided **2026 profiles** dataset.
+- Re-running the seed **must not** create duplicates (use `ON CONFLICT` upsert or equivalent).
+- Verify seeding:
+
+```sql
+SELECT COUNT(*) FROM profiles;
+-- should return 2026
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ pnpm run test
+#### API reference
 
-# e2e tests
-$ pnpm run test:e2e
+**Base path**: `/api/profiles`
 
-# test coverage
-$ pnpm run test:cov
+##### GET /api/profiles
+
+Returns filtered, sorted, paginated profiles.
+
+## Query parameters
+
+- `gender` — `male` | `female`
+- `age_group` — `child` | `teenager` | `adult` | `senior`
+- `country_id` — ISO 2-letter code (e.g., `NG`, `AO`)
+- `min_age` — integer
+- `max_age` — integer
+- `min_gender_probability` — float
+- `min_country_probability` — float
+- `sort_by` — `age` | `created_at` | `gender_probability`
+- `order` — `asc` | `desc`
+- `page` — integer (default: 1)
+- `limit` — integer (default: 10, max: 50)
+
+## Success response
+
+```json
+{
+  "status": "success",
+  "page": 1,
+  "limit": 10,
+  "total": 2026,
+  "data": [
+    /* profile objects */
+  ]
+}
 ```
 
-## Deployment
+### GET /api/profiles/search
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Natural language query endpoint. Accepts `q` plus `page` and `limit`.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Example
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+```api request
+GET /api/profiles/search?q=young males from nigeria&page=1&limit=10
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Behavior
 
-## Resources
+- Deterministic rule-based parsing only (no AI).
+- Converts parsed values into the same filter set used by `/api/profiles`.
+- Pagination applies.
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Natural language parsing rules
 
-## Support
+- **Normalization**: Lowercase and trim input.
+- **Gender detection**: `male` or `female`. If both appear, gender is ignored.
+- **Age interpretation**
+  - Numeric rules: `above <n>` → `min_age = n`; `below <n>` → `max_age = n`.
+  - Keyword mapping: `young` → `min_age = 16`, `max_age = 24` (applies only if no explicit numeric age present).
+- **Age group mapping**: `child`, `teenager`, `adult`, `senior`.
+- **Country detection**
+  - Alias matching (e.g., `usa`, `america` → `US`; `uk`, `britain` → `GB`).
+  - Official names via `i18n-iso-countries` with word-boundary matching to avoid false positives.
+- **Precedence**
+  - Explicit numeric age rules override keyword-based mappings.
+  - Multiple filters combine with logical AND.
+- **Uninterpretable queries**
+  - Return:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+  ```json
+  { "status": "error", "message": "Unable to interpret query" }
+  ```
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+#### Filtering, sorting, pagination behavior
 
-## License
+- Filters are **combinable** and applied with logical **AND**.
+- Sorting:
+  - `sort_by` accepts `age`, `created_at`, `gender_probability`.
+  - `order` accepts `asc` or `desc`.
+  - Default sort: `created_at desc` (unless otherwise configured).
+- Pagination:
+  - `page` default: `1`
+  - `limit` default: `10`, maximum: `50`
+  - Response includes `page`, `limit`, and `total`.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
+
+#### Validation and error responses
+
+All errors follow this structure:
+
+```json
+{ "status": "error", "message": "<error message>" }
+```
+
+## Common status codes
+
+- `400 Bad Request` — Missing or empty parameter
+- `422 Unprocessable Entity` — Invalid parameter type or value
+- `404 Not Found` — Profile not found
+- `500 / 502` — Server failure
+
+## Invalid query parameters
+
+```json
+{ "status": "error", "message": "Invalid query parameters" }
+```
+
+## Natural language parse failure
+
+```json
+{ "status": "error", "message": "Unable to interpret query" }
+```
+
+---
+
+### Performance notes
+
+- The system must handle **2026 records** efficiently.
+- Add indexes on `country_id`, `age`, `gender`, and `created_at`.
+- Use parameterized queries and avoid unnecessary full-table scans.
+- Prefer keyset pagination for large offsets if performance becomes an issue.
+
+---
+
+#### Examples
+
+## Filter + Sort + Paginate
+
+```api request
+GET /api/profiles?gender=female&min_age=30&sort_by=age&order=desc&page=2&limit=20
+```
+
+## Natural Language
+
+```api request
+GET /api/profiles/search?q=females above 30&page=1&limit=10
+```
+
+## Error Example
+
+```api request
+GET /api/profiles?min_age=abc
+Response:
+{ "status": "error", "message": "Invalid query parameters" }
+```
+
+---
+
+### Testing checklist
+
+- [ ] Database seeded with 2026 profiles
+- [ ] `GET /api/profiles` supports all filters and combinations
+- [ ] Sorting works for all `sort_by` fields and both `order` values
+- [ ] Pagination respects `page`, `limit`, and `max limit = 50`
+- [ ] `GET /api/profiles/search` interprets example queries correctly
+- [ ] Invalid parameters return `422` or `400` with the correct error structure
+- [ ] Uninterpretable natural language queries return the specified error object
+- [ ] CORS header present on all responses
+- [ ] Timestamps are UTC ISO 8601; IDs are UUID v7
+
+---
+
+#### Implementation notes and suggestions
+
+- Use `i18n-iso-countries` for robust country name → ISO code mapping and apply word-boundary regex to avoid false matches.
+- Use regex like `/above (\d+)/` and `/below (\d+)/` for numeric age extraction; extend to support `over`, `under`, `>`, `<` if desired.
+- Ensure seeding uses upsert logic keyed on `name` or `id` to avoid duplicates.
+- Validate `min_age` ≤ `max_age` when both are present; return a `422` if invalid.
+- Keep natural language parsing deterministic and unit-tested (cover edge cases and ambiguous inputs).
+
+---
+
+#### Contact and repository
+
+**Repository**: `https://github.com/anaell/task-2`
