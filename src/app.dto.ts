@@ -88,11 +88,15 @@ export class NaturalLanguageSearchQueryDto {
   @IsNotEmpty({ message: 'q cannot be empty' })
   q!: string;
 
-  @IsNumber()
   @IsOptional()
+  // To convert to a number
+  @Type(() => Number)
+  @IsNumber()
   page?: number;
 
-  @IsNumber()
   @IsOptional()
+  // To convert to a number
+  @Type(() => Number)
+  @IsNumber()
   limit?: number;
 }
