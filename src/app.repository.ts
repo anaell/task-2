@@ -89,39 +89,9 @@ export class DatabaseRepository {
 
   async fetchUsersWithOptionalFilters(
     dto: FetchProfilesDto,
-    // gender?: Gender,
-    // country_id?: string,
-    // age_group?: AgeGroup,
-    // min_age?: number,
-    // max_age?: number,
-    // min_gender_probability?: number,
-    // min_country_probability?: number,
   ): Promise<{ data: Profile[]; total: number; page: number; limit: number }> {
     try {
       // To build 'where' dynamically
-      // const where: any = {};
-
-      // if (gender) {
-      //   where.gender = {
-      //     equals: gender,
-      //     mode: 'insensitive',
-      //   };
-      // }
-
-      // if (country_id) {
-      //   where.country_id = {
-      //     equals: country_id,
-      //     mode: 'insensitive',
-      //   };
-      // }
-
-      // if (age_group) {
-      //   where.age_group = {
-      //     equals: age_group,
-      //     mode: 'insensitive',
-      //   };
-      // }
-
       const where: any = {};
 
       if (dto.gender) where.gender = dto.gender;
@@ -166,16 +136,6 @@ export class DatabaseRepository {
       ]);
 
       return { data, total, page, limit };
-      // const profiles = await prisma.profile.findMany({
-      //   where,
-      // });
-
-      // const profiles = await prisma.profile.findMany({
-      //   where,
-      //   orderBy: {},
-      // });
-
-      // return profiles;
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',

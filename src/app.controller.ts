@@ -27,44 +27,9 @@ export class AppController {
     return this.appService.ProcessPostRequestFunction(name);
   }
 
-  // @Get('profiles')
-  // async filter(
-  //   @Query('gender') gender: string,
-  //   @Query('country_id') country_id: string,
-  //   @Query('age_group') age_group: string,
-  // ) {
-  //   return this.appService.GetAllProfileWithOptionalFilters(
-  //     gender,
-  //     country_id,
-  //     age_group,
-  //   );
-  // }
-
   @Get('profiles')
-  async filter(
-    // @Query('gender') gender: string,
-    // @Query('country_id') country_id: string,
-    // @Query('age_group') age_group: string,
-    // @Query('min_age') min_age: number,
-    // @Query('max_age') max_age: number,
-    // @Query('min_gender_probability') min_gender_probability: number,
-    // @Query('min_country_probability') min_country_probability: number,
-    @Query() query: FetchProfilesDto,
-  ) {
-    return this.appService.GetAllProfileWithOptionalFilters(
-      query,
-      // query.gender,
-      // query.country_id,
-      // query.age_group,
-      // query.min_age,
-      // query.max_age,
-      // query.min_gender_probability,
-      // query.min_country_probability,
-      // query.sort_by,
-      // query.order,
-      // query.page,
-      // query.limit,
-    );
+  async filter(@Query() query: FetchProfilesDto) {
+    return this.appService.GetAllProfileWithOptionalFilters(query);
   }
 
   @Get('profiles/search')

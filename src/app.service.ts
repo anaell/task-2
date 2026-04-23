@@ -253,32 +253,10 @@ export class AppService {
   }
 
   // The code below is an adjustment for task-2
-  async GetAllProfileWithOptionalFilters(
-    params: FetchProfilesDto,
-    // gender?: Gender,
-    // country_id?: string,
-    // age_group?: AgeGroup,
-    // min_age?: number,
-    // max_age?: number,
-    // min_gender_probability?: number,
-    // min_country_probability?: number,
-    // sort_by?: SortBy,
-    // order?: Order,
-    // page?: number,
-    // limit?: number,
-  ) {
+  async GetAllProfileWithOptionalFilters(params: FetchProfilesDto) {
     try {
       const profiles =
-        await this.databaseRepository.fetchUsersWithOptionalFilters(
-          params,
-          // params.gender,
-          // params.country_id?.toLowerCase(),
-          // params.age_group,
-          // params.min_age,
-          // params.max_age,
-          // params.min_gender_probability,
-          // params.min_country_probability,
-        );
+        await this.databaseRepository.fetchUsersWithOptionalFilters(params);
 
       return {
         status: 'success',
