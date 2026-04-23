@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+
+  // ReferenceError: exports is not defined in ES module scope
+  // To fix the error above that nestjs shows.
+  moduleFormat = "cjs"
+
+  // Vercel's serverless functions run on a specific Linux environment (Amazon Linux/RHEL). You must explicitly tell Prisma to include the correct binary engine.
+  // Add this line for Vercel compatibility
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum AgeGroup {
+  child
+  teenager
+  adult
+  senior
+}
+
+model User {
+  id                  String   @id @db.Uuid()
+  name                String   @unique
+  gender              String
+  gender_probability  Decimal
+  sample_size         Int
+  age                 Int
+  age_group           String
+  country_id          String
+  country_probability Decimal
+  created_at          DateTime @default(now())
+}
+
+model Profile {
+  id                  String   @id @db.Uuid()
+  name                String   @unique
+  gender              Gender
+  gender_probability  Float
+  age                 Int
+  age_group           AgeGroup
+  country_id          String   @db.VarChar(2)
+  country_name        String
+  country_probability Float
+  created_at          DateTime @default(now())
+}
