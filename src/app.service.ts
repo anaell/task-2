@@ -317,11 +317,31 @@ export class AppService {
           parsed_query,
         );
 
+      const total_pages = Math.ceil(data.total / data.limit);
+
+      // Links to the next, prev and current page in the pagination
+      const base_api_url = '/api/profiles';
+      const link_to_self = `${base_api_url}?page=${data.page}&limit=${data.limit}`;
+      const link_to_next =
+        data.page === total_pages
+          ? null
+          : `${base_api_url}?page=${data.page + 1}&limit=${data.limit}`;
+      const link_to_prev =
+        data.page <= 1
+          ? null
+          : `${base_api_url}?page=${data.page - 1}&limit=${data.limit}`;
+
       return {
         status: 'success',
         page: data.page,
         limit: data.limit,
         total: data.total,
+        total_pages,
+        links: {
+          self: link_to_self,
+          next: link_to_next,
+          prev: link_to_prev,
+        },
         data: data.data,
       };
     } catch (error) {
