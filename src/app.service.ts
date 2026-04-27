@@ -258,11 +258,31 @@ export class AppService {
       const profiles =
         await this.databaseRepository.fetchUsersWithOptionalFilters(params);
 
+      const total_pages = Math.ceil(profiles.total / profiles.limit);
+
+      // Links to the next, prev and current page in the pagination
+      const base_api_url = '/api/profiles';
+      const link_to_self = `${base_api_url}?page=${profiles.page}&limit=${profiles.limit}`;
+      const link_to_next =
+        profiles.page === total_pages
+          ? null
+          : `${base_api_url}?page=${profiles.page + 1}&limit=${profiles.limit}`;
+      const link_to_prev =
+        profiles.page <= 1
+          ? null
+          : `${base_api_url}?page=${profiles.page - 1}&limit=${profiles.limit}`;
+
       return {
         status: 'success',
         page: profiles.page,
         limit: profiles.limit,
         total: profiles.total,
+        total_pages,
+        links: {
+          self: link_to_self,
+          next: link_to_next,
+          prev: link_to_prev,
+        },
         data: profiles.data,
       };
     } catch (error) {
