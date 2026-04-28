@@ -5,9 +5,10 @@ import { DatabaseRepository } from './app.repository';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { Req_Res_LoggingInterceptor } from './common/interceptors/req_res_logging.interceptor';
 import { LoggingExceptionFilter } from './common/filters/exception_logging.filter';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [],
+  imports: [AuthModule],
   controllers: [AppController],
   providers: [
     AppService,

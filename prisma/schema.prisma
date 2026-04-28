@@ -37,19 +37,6 @@ enum Role {
   analyst
 }
 
-model User {
-  id                  String   @id @db.Uuid()
-  name                String   @unique
-  gender              String
-  gender_probability  Decimal
-  sample_size         Int
-  age                 Int
-  age_group           String
-  country_id          String
-  country_probability Decimal
-  created_at          DateTime @default(now())
-}
-
 model Profile {
   id                  String   @id @db.Uuid()
   name                String   @unique
@@ -63,7 +50,7 @@ model Profile {
   created_at          DateTime @default(now())
 }
 
-model SavedUser_Task3 {
+model Users {
   id            String   @id @db.Uuid()
   github_id     String   @unique
   username      String

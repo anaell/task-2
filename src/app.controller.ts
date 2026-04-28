@@ -24,7 +24,7 @@ export class AppController {
   async postRequest(@Body() postRequestBody: PostRequestDTO) {
     const name = postRequestBody.name;
 
-    return this.appService.ProcessPostRequestFunction(name);
+    return this.appService.ProcessProfilePostRequestFunction(name);
   }
 
   @Get('profiles')

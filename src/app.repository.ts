@@ -1,21 +1,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import {
-  AgeGroup,
-  createUserType,
-  fetchUsersWithOptionalFiltersType,
-  Gender,
-} from './app.type';
+import { createProfileType } from './app.type';
 import { prisma } from '../lib/prisma';
-import { Profile, User } from '../generated/prisma/client';
+import { Profile } from '../generated/prisma/client';
 import { FetchProfilesDto } from './app.dto';
 
 @Injectable()
 export class DatabaseRepository {
-  async createUser(data: createUserType): Promise<User> {
+  async createProfile(data: createProfileType): Promise<Profile> {
     try {
-      const user = await prisma.user.create({ data });
+      const profile = await prisma.profile.create({ data });
 
-      return user;
+      return profile;
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',
@@ -24,11 +19,13 @@ export class DatabaseRepository {
     }
   }
 
-  async checkUserExists(name: string): Promise<boolean> {
+  async checkProfileExists(name: string): Promise<boolean> {
     try {
-      const userExists = await prisma.user.findFirst({ where: { name: name } });
+      const profileExists = await prisma.profile.findFirst({
+        where: { name: name },
+      });
 
-      return !!userExists;
+      return !!profileExists;
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',
@@ -37,11 +34,11 @@ export class DatabaseRepository {
     }
   }
 
-  async checkUserExistsWithId(id: string): Promise<boolean> {
+  async checkProfileExistsWithId(id: string): Promise<boolean> {
     try {
-      const userExists = await prisma.user.findFirst({ where: { id } });
+      const profileExists = await prisma.profile.findFirst({ where: { id } });
 
-      return !!userExists;
+      return !!profileExists;
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',
@@ -50,11 +47,11 @@ export class DatabaseRepository {
     }
   }
 
-  async fetchUserByName(name: string): Promise<User | null> {
+  async fetchProfileByName(name: string): Promise<Profile | null> {
     try {
-      const user = await prisma.user.findFirst({ where: { name } });
+      const profile = await prisma.profile.findFirst({ where: { name } });
 
-      return user;
+      return profile;
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',
@@ -63,11 +60,11 @@ export class DatabaseRepository {
     }
   }
 
-  async fetchUserById(id: string): Promise<User | null> {
+  async fetchProfileById(id: string): Promise<Profile | null> {
     try {
-      const user = await prisma.user.findFirst({ where: { id } });
+      const profile = await prisma.profile.findFirst({ where: { id } });
 
-      return user;
+      return profile;
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',
@@ -76,9 +73,9 @@ export class DatabaseRepository {
     }
   }
 
-  async deleteUser(id: string) {
+  async deleteProfile(id: string) {
     try {
-      await prisma.user.delete({ where: { id } });
+      await prisma.profile.delete({ where: { id } });
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',
@@ -87,7 +84,7 @@ export class DatabaseRepository {
     }
   }
 
-  async fetchUsersWithOptionalFilters(
+  async fetchProfileWithOptionalFilters(
     dto: FetchProfilesDto,
   ): Promise<{ data: Profile[]; total: number; page: number; limit: number }> {
     try {

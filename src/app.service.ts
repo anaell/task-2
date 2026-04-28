@@ -20,6 +20,7 @@ import { uuidv7 } from 'uuidv7';
 import { DatabaseRepository } from './app.repository';
 import { FetchProfilesDto, NaturalLanguageSearchQueryDto } from './app.dto';
 import { parseSearchQuery } from './utils/queryparserfunction';
+import { getCountryNameFromId } from './utils/countrycodemapper';
 
 @Injectable()
 export class AppService {
@@ -133,20 +134,21 @@ export class AppService {
     }
   }
 
-  async ProcessPostRequestFunction(
+  async ProcessProfilePostRequestFunction(
     profileName: string,
   ): Promise<ProcessPostRequestFunctionType | any> {
     try {
       const name = profileName.toLowerCase();
-      const userExists = await this.databaseRepository.checkUserExists(name);
+      const profileExists =
+        await this.databaseRepository.checkProfileExists(name);
 
-      if (userExists) {
-        const user = await this.databaseRepository.fetchUserByName(name);
+      if (profileExists) {
+        const profile = await this.databaseRepository.fetchProfileByName(name);
 
         return {
           status: 'success',
           message: 'Profile already exists',
-          data: user,
+          data: profile,
         };
       }
 
@@ -159,48 +161,52 @@ export class AppService {
       const nationalize_data: NationalizeAPIResponseType =
         await this.NationalizeRequestFunction(name);
 
+      console.log(nationalize_data);
+
       // To classify using the age
       function classifyAge(age) {
         switch (true) {
           case age >= 0 && age <= 12:
-            return 'child';
+            return AgeGroup.child;
           case age >= 13 && age <= 19:
-            return 'teenager';
+            return AgeGroup.teenager;
           case age >= 20 && age <= 59:
-            return 'adult';
-          case age >= 60:
-            return 'senior';
+            return AgeGroup.adult;
           default:
-            return 'unknown';
+            return AgeGroup.senior;
         }
       }
 
       const age_group = classifyAge(agify_data.age);
 
       const country_sorted = nationalize_data.country.sort((a, b) => {
+        // The sort is according to the probability. So the highest probability will be last
         return a.probability - b.probability;
       });
+      // To extract the country with the highest probability
       const country = country_sorted[country_sorted.length - 1];
+      const country_name = getCountryNameFromId(country.country_id);
 
       const processed_data = {
         id: uuidv7(),
         name,
         gender: genderize_data.gender,
         gender_probability: genderize_data.probability,
-        // Make an adjustment here for the task 3.
-        sample_size: genderize_data.count,
+        // Make an adjustment here for the task 3. Comment out sample_size
+        // sample_size: genderize_data.count,
         age: agify_data.age,
         age_group,
         country_id: country.country_id,
         // Add country_name here for the task3
         // This is to make it the same with the seed given in task2.
+        country_name,
         country_probability: country.probability,
       };
 
-      const created_user_data =
-        await this.databaseRepository.createUser(processed_data);
+      const created_profile_data =
+        await this.databaseRepository.createProfile(processed_data);
 
-      return { status: 'success', data: { ...created_user_data } };
+      return { status: 'success', data: { ...created_profile_data } };
     } catch (error) {
       if (error instanceof HttpException) throw error;
 
@@ -213,17 +219,17 @@ export class AppService {
 
   async ProcessGetProfileUsingId(id: string) {
     try {
-      const checkUserExists =
-        await this.databaseRepository.checkUserExistsWithId(id);
-      if (!checkUserExists) {
+      const checkProfileExists =
+        await this.databaseRepository.checkProfileExistsWithId(id);
+      if (!checkProfileExists) {
         throw new NotFoundException({
           status: 'error',
           message: 'Profile not found',
         });
       }
-      const user = await this.databaseRepository.fetchUserById(id);
+      const profile = await this.databaseRepository.fetchProfileById(id);
 
-      return { status: 'success', data: user };
+      return { status: 'success', data: profile };
     } catch (error) {
       if (error instanceof HttpException) throw error;
 
@@ -236,15 +242,15 @@ export class AppService {
 
   async DeleteProfileFunction(id: string) {
     try {
-      const checkUserExists =
-        await this.databaseRepository.checkUserExistsWithId(id);
-      if (!checkUserExists) {
+      const checkProfileExists =
+        await this.databaseRepository.checkProfileExistsWithId(id);
+      if (!checkProfileExists) {
         throw new NotFoundException({
           status: 'error',
           message: 'Profile not found',
         });
       }
-      await this.databaseRepository.deleteUser(id);
+      await this.databaseRepository.deleteProfile(id);
     } catch (error) {
       if (error instanceof HttpException) throw error;
 
@@ -259,7 +265,7 @@ export class AppService {
   async GetAllProfileWithOptionalFilters(params: FetchProfilesDto) {
     try {
       const profiles =
-        await this.databaseRepository.fetchUsersWithOptionalFilters(params);
+        await this.databaseRepository.fetchProfileWithOptionalFilters(params);
 
       const total_pages = Math.ceil(profiles.total / profiles.limit);
 
@@ -316,7 +322,7 @@ export class AppService {
       console.log('About to request to the DB.');
 
       const data =
-        await this.databaseRepository.fetchUsersWithOptionalFilters(
+        await this.databaseRepository.fetchProfileWithOptionalFilters(
           parsed_query,
         );
 

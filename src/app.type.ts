@@ -2,7 +2,7 @@ export interface GenderizeAPIResponseType {
   count: number;
   probability: number;
   name: string;
-  gender: string;
+  gender: Gender;
 }
 
 export interface AgifyAPIResponseType {
@@ -18,6 +18,7 @@ export interface NationalizeAPIResponseType {
   country: {
     country_id: string;
     probability: number;
+    // country_name: string;
   }[];
 }
 
@@ -28,29 +29,33 @@ export interface ProcessPostRequestFunctionType {
     name: string;
     gender: string;
     gender_probability: number;
-    sample_size: number;
+    // Below was commented out for task3 and to align the object to the new schema given (Align to the requirement)
+    // sample_size: number;
     age: number;
     age_group: string;
     country_id: string;
+    country_name: string;
     country_probability: number;
     created_at: string;
   };
 }
 
-export interface userType {
+export interface profileType {
   id: string;
   name: string;
-  gender: string;
+  gender: Gender;
   gender_probability: number;
-  sample_size: number;
+  // Below was commented out for task3 and to align the object to the new schema given (Align to the requirement)
+  // sample_size: number;
   age: number;
-  age_group: string;
+  age_group: AgeGroup;
   country_id: string;
+  country_name: string;
   country_probability: number;
   created_at: string;
 }
 
-export type createUserType = Omit<userType, 'created_at'>;
+export type createProfileType = Omit<profileType, 'created_at'>;
 
 export interface fetchUsersWithOptionalFiltersType {
   id: string;

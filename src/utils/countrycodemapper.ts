@@ -64,3 +64,11 @@ export function getCountryCodeFromText(query: string): string | undefined {
 
   return undefined;
 }
+
+export function getCountryNameFromId(id: string): string {
+  // The library provides official names keyed by ISO codes
+  const allCountries = countries.getNames('en', { select: 'official' });
+
+  // Look up the name using the given id
+  return allCountries[id];
+}
