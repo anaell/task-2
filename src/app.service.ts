@@ -187,10 +187,13 @@ export class AppService {
         name,
         gender: genderize_data.gender,
         gender_probability: genderize_data.probability,
+        // Make an adjustment here for the task 3.
         sample_size: genderize_data.count,
         age: agify_data.age,
         age_group,
         country_id: country.country_id,
+        // Add country_name here for the task3
+        // This is to make it the same with the seed given in task2.
         country_probability: country.probability,
       };
 
