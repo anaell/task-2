@@ -29,4 +29,19 @@ export class AuthRepository {
       });
     }
   }
+
+  async GetUser(githubId: string) {
+    try {
+      const user = await prisma.users.findUnique({
+        where: { github_id: githubId },
+      });
+
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException({
+        status: 'error',
+        message: 'Database could not be reached. Try again later.',
+      });
+    }
+  }
 }
