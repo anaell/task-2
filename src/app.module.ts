@@ -31,22 +31,7 @@ import {
           ttl: 60000 /**ttl is in milliseconds */,
         },
       ],
-      errorMessage: 'Too many requests',
-      // errorMessage can be a function that receives context and limit detail
-      // The below is a way to dynamically generate the custom errorMessage depending on which rule was broken
-      // errorMessage: (
-      //   context: ExecutionContext,
-      //   detail: ThrottlerLimitDetail,
-      // ) => {
-      //   const name = detail?.key ?? 'default';
-      //   if (name === 'short')
-      //     return 'Too many requests in a short burst. Slow down.';
-      //   if (name === 'medium')
-      //     return 'Too many requests in a short period. Try again later.';
-      //   if (name === 'long')
-      //     return 'You are making too many requests overall. Wait a minute.';
-      //   return 'Too many requests';
-      // },
+      errorMessage: 'Too Many Requests',
     }),
   ],
   controllers: [AppController],
