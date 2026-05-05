@@ -17,6 +17,7 @@ import {
   PostRequestDTO,
 } from './app.dto';
 import type { Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('api')
 export class AppController {

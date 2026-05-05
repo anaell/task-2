@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
+@Throttle({ rate_limit: { limit: 10, ttl: 60000 } })
 export class AuthController {
   @Get('github')
   async GitHubOAuth() {}
