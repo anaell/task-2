@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import {
@@ -18,7 +19,9 @@ import {
 } from './app.dto';
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
+import { ProfileGuard } from './common/guard/profile.guard';
 
+@UseGuards(ProfileGuard)
 @Controller('api')
 export class AppController {
   constructor(private readonly appService: AppService) {}

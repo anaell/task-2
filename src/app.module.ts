@@ -11,6 +11,7 @@ import {
   ThrottlerLimitDetail,
   ThrottlerModule,
 } from '@nestjs/throttler';
+import { ProfileGuard } from './common/guard/profile.guard';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import {
   providers: [
     AppService,
     DatabaseRepository,
+    ProfileGuard,
     {
       provide: APP_INTERCEPTOR,
       useClass: Req_Res_LoggingInterceptor,
