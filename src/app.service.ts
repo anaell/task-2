@@ -18,9 +18,15 @@ import {
 } from './app.type';
 import { uuidv7 } from 'uuidv7';
 import { DatabaseRepository } from './app.repository';
-import { FetchProfilesDto, NaturalLanguageSearchQueryDto } from './app.dto';
+import {
+  ExportToCSVDto,
+  FetchProfilesDto,
+  NaturalLanguageSearchQueryDto,
+} from './app.dto';
 import { parseSearchQuery } from './utils/queryparserfunction';
 import { getCountryNameFromId } from './utils/countrycodemapper';
+import { Response } from 'express';
+import { format } from '@fast-csv/format';
 
 @Injectable()
 export class AppService {
@@ -353,6 +359,60 @@ export class AppService {
         },
         data: data.data,
       };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+
+      throw new InternalServerErrorException({
+        status: 'error',
+        message: 'Something went wrong try again later.',
+      });
+    }
+  }
+
+  async HandleExportService(query: ExportToCSVDto, res: Response) {
+    try {
+      if (query.format && query.format !== 'csv') {
+        throw new BadRequestException({
+          status: 'error',
+          message: 'Only csv format is supported currently!',
+        });
+      }
+
+      // Setting the headers manually and using the 'Response' Object from Express because this necessitates it.
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=profiles_${Date.now()}.csv`,
+      );
+
+      const CSV_HEADERS = [
+        'id',
+        'name',
+        'gender',
+        'gender_probability',
+        'age',
+        'age_group',
+        'country_id',
+        'country_name',
+        'country_probability',
+        'created_at',
+      ];
+
+      const streamCSV = format({ headers: CSV_HEADERS, delimiter: ',' });
+
+      streamCSV.pipe(res);
+
+      // Used a generator function to mock the streaming from db straight to user.
+      // The below is for consuming the generator function
+      for await (const batch of this.databaseRepository.fetchProfileForCSV_Streaming(
+        query,
+      )) {
+        for (const profile of batch) {
+          streamCSV.write(profile);
+        }
+      }
+
+      streamCSV.end();
     } catch (error) {
       if (error instanceof HttpException) throw error;
 

@@ -100,3 +100,9 @@ export class NaturalLanguageSearchQueryDto {
   @IsNumber()
   limit?: number;
 }
+
+export class ExportToCSVDto extends FetchProfilesDto {
+  @IsOptional()
+  @IsString()
+  format?: string;
+}

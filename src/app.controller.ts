@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,13 +7,16 @@ import {
   Param,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import {
+  ExportToCSVDto,
   FetchProfilesDto,
   NaturalLanguageSearchQueryDto,
   PostRequestDTO,
 } from './app.dto';
+import type { Response } from 'express';
 
 @Controller('api')
 export class AppController {
@@ -41,6 +43,11 @@ export class AppController {
       query.page,
       query.limit,
     );
+  }
+
+  @Get('profiles/export')
+  async ExportProfiles(@Query() query: ExportToCSVDto, @Res() res: Response) {
+    return this.appService.HandleExportService(query, res);
   }
 
   @Get('profiles/:id')
