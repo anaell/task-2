@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  NotAcceptableException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
@@ -25,7 +26,7 @@ export class ProfileGuard implements CanActivate {
 
     // To make clear that api-version "1" is the only supported one currently
     if (apiVersion !== '1') {
-      throw new BadRequestException({
+      throw new NotAcceptableException({
         status: 'error',
         message: 'Unsupported API version',
       });
