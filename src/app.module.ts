@@ -12,9 +12,15 @@ import {
   ThrottlerModule,
 } from '@nestjs/throttler';
 import { ProfileGuard } from './common/guard/profile.guard';
+import { CacheModule } from '@nestjs/cache-manager';
+import { PrismaModule } from './prisma/prisma.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    PrismaModule,
+    JwtModule.register({ global: true }),
+    CacheModule.register({ isGlobal: true }),
     AuthModule,
     // ThrottlerModule.forRoot([
     //   {

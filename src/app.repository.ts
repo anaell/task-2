@@ -1,14 +1,17 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { createProfileType } from './app.type';
-import { prisma } from '../lib/prisma';
+// import { prisma } from '../lib/prisma';
 import { Prisma, Profile } from '../generated/prisma/client';
 import { FetchProfilesDto } from './app.dto';
+import { PrismaService } from './prisma/prisma.service';
 
 @Injectable()
 export class DatabaseRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
   async createProfile(data: createProfileType): Promise<Profile> {
     try {
-      const profile = await prisma.profile.create({ data });
+      const profile = await this.prisma.profile.create({ data });
 
       return profile;
     } catch (error) {
@@ -21,7 +24,7 @@ export class DatabaseRepository {
 
   async checkProfileExists(name: string): Promise<boolean> {
     try {
-      const profileExists = await prisma.profile.findFirst({
+      const profileExists = await this.prisma.profile.findFirst({
         where: { name: name },
       });
 
@@ -36,7 +39,9 @@ export class DatabaseRepository {
 
   async checkProfileExistsWithId(id: string): Promise<boolean> {
     try {
-      const profileExists = await prisma.profile.findFirst({ where: { id } });
+      const profileExists = await this.prisma.profile.findFirst({
+        where: { id },
+      });
 
       return !!profileExists;
     } catch (error) {
@@ -49,7 +54,7 @@ export class DatabaseRepository {
 
   async fetchProfileByName(name: string): Promise<Profile | null> {
     try {
-      const profile = await prisma.profile.findFirst({ where: { name } });
+      const profile = await this.prisma.profile.findFirst({ where: { name } });
 
       return profile;
     } catch (error) {
@@ -62,7 +67,7 @@ export class DatabaseRepository {
 
   async fetchProfileById(id: string): Promise<Profile | null> {
     try {
-      const profile = await prisma.profile.findFirst({ where: { id } });
+      const profile = await this.prisma.profile.findFirst({ where: { id } });
 
       return profile;
     } catch (error) {
@@ -75,7 +80,7 @@ export class DatabaseRepository {
 
   async deleteProfile(id: string) {
     try {
-      await prisma.profile.delete({ where: { id } });
+      await this.prisma.profile.delete({ where: { id } });
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',
@@ -127,14 +132,14 @@ export class DatabaseRepository {
 
       const skip = (page - 1) * limit;
 
-      const [data, total] = await prisma.$transaction([
-        prisma.profile.findMany({
+      const [data, total] = await this.prisma.$transaction([
+        this.prisma.profile.findMany({
           where,
           orderBy,
           skip,
           take: limit,
         }),
-        prisma.profile.count({ where }),
+        this.prisma.profile.count({ where }),
       ]);
 
       return { data, total, page, limit };
@@ -160,7 +165,7 @@ export class DatabaseRepository {
       let cursor: string | undefined = undefined;
 
       while (true) {
-        const batch = await prisma.profile.findMany({
+        const batch = await this.prisma.profile.findMany({
           where,
           orderBy,
           take: batchSize,

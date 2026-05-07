@@ -6,12 +6,14 @@ import {
   UnprocessableEntityException,
   ValidationPipe,
 } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // To enable cors
   app.enableCors({ origin: '*' });
+  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({

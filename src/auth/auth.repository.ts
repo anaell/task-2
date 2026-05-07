@@ -1,11 +1,15 @@
-import { InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Users } from 'generated/prisma/client';
-import { prisma } from 'lib/prisma';
+import { UsersCreateInput, UsersUpdateInput } from 'generated/prisma/models';
+// import { prisma } from 'lib/prisma';
+import { PrismaService } from 'src/prisma/prisma.service';
 
+@Injectable()
 export class AuthRepository {
+  constructor(private readonly prisma: PrismaService) {}
   async CheckUserExists(githubId: string) {
     try {
-      const user = await prisma.users.findUnique({
+      const user = await this.prisma.users.findUnique({
         where: { github_id: githubId },
       });
       return !!user;
@@ -17,9 +21,9 @@ export class AuthRepository {
     }
   }
 
-  async CreateUser(user: Users) {
+  async CreateUser(user: UsersCreateInput) {
     try {
-      const create_user = await prisma.users.create({ data: user });
+      const create_user = await this.prisma.users.create({ data: user });
 
       return create_user;
     } catch (error) {
@@ -32,11 +36,41 @@ export class AuthRepository {
 
   async GetUser(githubId: string) {
     try {
-      const user = await prisma.users.findUnique({
+      const user = await this.prisma.users.findUnique({
         where: { github_id: githubId },
       });
 
       return user;
+    } catch (error) {
+      throw new InternalServerErrorException({
+        status: 'error',
+        message: 'Database could not be reached. Try again later.',
+      });
+    }
+  }
+
+  async UpdateUserLoginStatus(github_id: string) {
+    try {
+      const updated_user = this.prisma.users.update({
+        where: { github_id },
+        data: { is_active: true, last_login_at: new Date().toISOString() },
+      });
+
+      return updated_user;
+    } catch (error) {
+      throw new InternalServerErrorException({
+        status: 'error',
+        message: 'Database could not be reached. Try again later.',
+      });
+    }
+  }
+
+  async UpdateUser_IsActive_Status(id: string) {
+    try {
+      return await this.prisma.users.update({
+        where: { id },
+        data: { is_active: false },
+      });
     } catch (error) {
       throw new InternalServerErrorException({
         status: 'error',
