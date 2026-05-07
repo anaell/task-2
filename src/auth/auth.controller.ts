@@ -62,7 +62,7 @@ export class AuthController {
   ) {
     const state = query.state;
     const stored_state = req.cookies['oauthState'];
-    const pkce_verifier = req.cookies['pkceVerifier'];
+    const pkce_verifier = req.cookies['pkceVerifier'] || query.code_verifier;
     const github_code = query.code;
 
     const service_data = { state, stored_state, github_code, pkce_verifier };

@@ -4,3 +4,8 @@ export interface GitHubCallBackService_DataType {
   github_code: string;
   pkce_verifier: string;
 }
+
+export enum Role {
+  admin = 'admin',
+  analyst = 'analyst',
+}

@@ -14,6 +14,10 @@ export class GitHubCallBackDTO {
   @IsString()
   @IsNotEmpty()
   state!: string;
+
+  @IsOptional()
+  @IsString()
+  code_verifier?: string;
 }
 
 export class LogoutEndpointDTO {

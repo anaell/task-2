@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Users } from 'generated/prisma/client';
+import { Role, Users } from 'generated/prisma/client';
 import { UsersCreateInput, UsersUpdateInput } from 'generated/prisma/models';
 // import { prisma } from 'lib/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -51,7 +51,7 @@ export class AuthRepository {
 
   async UpdateUserLoginStatus(github_id: string) {
     try {
-      const updated_user = this.prisma.users.update({
+      const updated_user = await this.prisma.users.update({
         where: { github_id },
         data: { is_active: true, last_login_at: new Date().toISOString() },
       });
@@ -70,6 +70,19 @@ export class AuthRepository {
       return await this.prisma.users.update({
         where: { id },
         data: { is_active: false },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException({
+        status: 'error',
+        message: 'Database could not be reached. Try again later.',
+      });
+    }
+  }
+
+  async GetUserByRole(role: Role) {
+    try {
+      return await this.prisma.users.findFirst({
+        where: { role },
       });
     } catch (error) {
       throw new InternalServerErrorException({
