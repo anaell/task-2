@@ -9,3 +9,18 @@ export enum Role {
   admin = 'admin',
   analyst = 'analyst',
 }
+
+export interface JwtPayload {
+  id: string;
+  role: 'analyst' | 'admin';
+}
+
+export interface create_user_object_type {
+  id: string;
+  github_id: string;
+  username: string;
+  email: string;
+  avatar_url: string;
+  is_active: boolean;
+  role: 'analyst' | 'admin';
+}

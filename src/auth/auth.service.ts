@@ -1,14 +1,16 @@
 import {
   BadGatewayException,
-  ConflictException,
   HttpException,
-  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 // import { uuidv4 } from 'uuidv7';
-import { GitHubCallBackService_DataType } from './auth.types';
+import {
+  create_user_object_type,
+  GitHubCallBackService_DataType,
+  JwtPayload,
+} from './auth.types';
 import { AuthRepository } from './auth.repository';
 import { uuidv7 } from 'uuidv7';
 import { JwtTokenUtilityFunction } from 'src/auth/auth.jwt.service';
@@ -131,13 +133,14 @@ export class AuthService {
 
       const user_exists = await this.authRepository.CheckUserExists(data.id);
 
-      const create_user_object = {
+      const create_user_object: create_user_object_type = {
         id: uuidv7(),
         github_id: data.id,
         username: data.login,
         email: data.email,
         avatar_url: data.avatar_url,
         is_active: true,
+        role: 'analyst',
         // last_login: new Date().toISOString(),
       };
 
@@ -145,9 +148,21 @@ export class AuthService {
         ? await this.authRepository.CreateUser(create_user_object)
         : await this.authRepository.UpdateUserLoginStatus(data.id);
 
-      const access_token = await this.jwtToken.CreateAccessToken(created_user);
-      const refresh_token =
-        await this.jwtToken.CreateRefreshToken(created_user);
+      // Checks if user account is disabled/banned (ie is_active == false)
+      if (!created_user.is_active) {
+        throw new UnauthorizedException({
+          status: 'error',
+          message: 'Account disabled',
+        });
+      }
+
+      const jwt_payload: JwtPayload = {
+        id: created_user.id,
+        role: created_user.role,
+      };
+
+      const access_token = await this.jwtToken.CreateAccessToken(jwt_payload);
+      const refresh_token = await this.jwtToken.CreateRefreshToken(jwt_payload);
 
       // Cache the refresh token
       await this.cacheRepository.CacheRefreshToken(
@@ -176,7 +191,7 @@ export class AuthService {
       if (refresh_token_from_body !== refresh_token_from_cookie) {
         throw new UnauthorizedException({
           status: 'error',
-          message: 'Unauthorized to carry this action',
+          message: `Unauthorized to carry this action. Token in 'Cookie' not same with token received in the Request 'Body'`,
         });
       }
 
@@ -191,7 +206,18 @@ export class AuthService {
       if (cached_refresh_token !== refresh_token_from_body) {
         throw new UnauthorizedException({
           status: 'error',
-          message: 'Unauthorized to carry this action',
+          message: `Unauthorized to carry this action.`,
+        });
+      }
+
+      const user_is_active = await this.authRepository.GetUser_IsActive_Status(
+        verify_old_refresh_token.id,
+      );
+
+      if (!user_is_active) {
+        throw new UnauthorizedException({
+          status: 'error',
+          message: 'Account disabled',
         });
       }
 
@@ -234,7 +260,7 @@ export class AuthService {
       if (refresh_token_from_body !== refresh_token_from_cookie) {
         throw new UnauthorizedException({
           status: 'error',
-          message: 'Unauthorized to carry this action',
+          message: `Unauthorized to carry this action. Token in 'Cookie' not same with token received in the Request 'Body'`,
         });
       }
 

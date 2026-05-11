@@ -53,7 +53,7 @@ export class AuthRepository {
     try {
       const updated_user = await this.prisma.users.update({
         where: { github_id },
-        data: { is_active: true, last_login_at: new Date().toISOString() },
+        data: { last_login_at: new Date().toISOString() },
       });
 
       return updated_user;
@@ -90,5 +90,13 @@ export class AuthRepository {
         message: 'Database could not be reached. Try again later.',
       });
     }
+  }
+
+  async GetUser_IsActive_Status(userid: string) {
+    const status = await this.prisma.users.findUnique({
+      where: { id: userid },
+      select: { is_active: true },
+    });
+    return !!status?.is_active;
   }
 }

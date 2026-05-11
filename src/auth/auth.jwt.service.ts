@@ -1,18 +1,19 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ErrorHandler } from '@nestjs/common/interfaces';
 import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './auth.types';
 
 @Injectable()
 export class JwtTokenUtilityFunction {
   constructor(private readonly jwtService: JwtService) {}
-  async CreateAccessToken(user) {
+  async CreateAccessToken(user: JwtPayload) {
     return await this.jwtService.signAsync(
       { id: user.id, role: user.role },
       { secret: process.env.ACCESS_JWT_SECRET, expiresIn: '3m' },
     );
   }
 
-  async CreateRefreshToken(user) {
+  async CreateRefreshToken(user: JwtPayload) {
     return await this.jwtService.signAsync(
       { id: user.id, role: user.role },
       { secret: process.env.REFRESH_JWT_SECRET, expiresIn: '5m' },
