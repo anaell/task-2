@@ -6,6 +6,7 @@ import { AuthRepository } from './auth.repository';
 import { JwtTokenUtilityFunction } from 'src/auth/auth.jwt.service';
 import { CacheRepository } from './auth.cache.repository';
 import { AuthGuard } from './auth.guard';
+import { IsActiveStatusGuard } from 'src/common/guard/is_active_status.guard';
 
 @Module({
   imports: [],
@@ -13,10 +14,16 @@ import { AuthGuard } from './auth.guard';
     AuthService,
     AuthGuard,
     AuthRepository,
+    IsActiveStatusGuard,
     JwtTokenUtilityFunction,
     CacheRepository,
   ],
   controllers: [AuthController],
-  exports: [JwtTokenUtilityFunction, AuthGuard],
+  exports: [
+    JwtTokenUtilityFunction,
+    AuthGuard,
+    IsActiveStatusGuard,
+    AuthRepository,
+  ],
 })
 export class AuthModule {}

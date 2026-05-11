@@ -21,8 +21,9 @@ import type { Response } from 'express';
 import { ProfileGuard } from './common/guard/profile.guard';
 import { AuthGuard } from './auth/auth.guard';
 import { AdminGuard } from './common/guard/admin.guard';
+import { IsActiveStatusGuard } from './common/guard/is_active_status.guard';
 
-@UseGuards(ProfileGuard, AuthGuard)
+@UseGuards(ProfileGuard, AuthGuard, IsActiveStatusGuard)
 @Controller('api')
 export class AppController {
   constructor(private readonly appService: AppService) {}
@@ -66,6 +67,6 @@ export class AppController {
   @HttpCode(204)
   @Delete('profiles/:id')
   async deleteProfile(@Param('id') id: string) {
-    this.appService.DeleteProfileFunction(id);
+    await this.appService.DeleteProfileFunction(id);
   }
 }

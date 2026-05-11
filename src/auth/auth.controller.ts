@@ -9,16 +9,18 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { uuidv4 } from 'uuidv7';
 import {
   GitHubCallBackDTO,
+  GitHubCliDTO,
   LogoutEndpointDTO,
   RefreshApiDTO,
 } from './auth.dto';
 import crypto from 'crypto';
+import { generateCsrfToken } from 'src/app.module';
 
 @Controller('auth')
 @Throttle({ rate_limit: { limit: 10, ttl: 60000 } })
@@ -83,6 +85,11 @@ export class AuthController {
     return { status: 'success', ...service_result };
   }
 
+  @Post('github/cli')
+  async GitHubCLI(@Body() body: GitHubCliDTO) {
+    return this.authService.GitHubCallBackService_CLI(body);
+  }
+
   @Post('refresh')
   async RefreshToken(
     @Body() body: RefreshApiDTO,
@@ -123,5 +130,17 @@ export class AuthController {
     res.clearCookie('refresh_token');
 
     return service_result;
+  }
+
+  @SkipThrottle({ rate_limit: true })
+  @Get('csrf-token')
+  async GetCsrfToken(
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const csrf_token = generateCsrfToken(req, res);
+
+    return { token: csrf_token };
+    // return { message: 'he1lo' };
   }
 }

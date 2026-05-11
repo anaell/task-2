@@ -15,6 +15,7 @@ import { AuthRepository } from './auth.repository';
 import { uuidv7 } from 'uuidv7';
 import { JwtTokenUtilityFunction } from 'src/auth/auth.jwt.service';
 import { CacheRepository } from './auth.cache.repository';
+import { GitHubCliDTO } from './auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -284,6 +285,51 @@ export class AuthService {
       await this.cacheRepository.DeleteRefreshTokenFromCache(user_id);
 
       return { status: 'success', message: 'Logged Out successfully' };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+
+      throw new InternalServerErrorException({
+        status: 'error',
+        message: 'Something went wrong try again later.',
+      });
+    }
+  }
+
+  async GitHubCallBackService_CLI(data: GitHubCliDTO) {
+    try {
+      // validate state format if needed
+
+      const github_req_body = {
+        client_id: process.env.GITHUB_APP_CLIENT_ID,
+        client_secret: process.env.GITHUB_APP_CLIENT_SECRET,
+        code: data.code,
+        code_verifier: data.code_verifier,
+      };
+
+      const github_request = await fetch(
+        'https://github.com/login/oauth/access_token',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(github_req_body),
+        },
+      );
+
+      if (!github_request.ok) {
+        throw new BadGatewayException({
+          status: 'error',
+          message: 'Could not reach GitHub',
+        });
+      }
+
+      const github_req_data = await github_request.json();
+
+      const github_access_token = github_req_data.access_token;
+
+      return await this.GitHubReq_Fetch_Create_IssueTokens(github_access_token);
     } catch (error) {
       if (error instanceof HttpException) throw error;
 

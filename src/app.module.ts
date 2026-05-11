@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseRepository } from './app.repository';
@@ -12,7 +17,25 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { PrismaModule } from './prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWTParserMiddleware } from './common/middleware/auth_middleware';
-import { JwtTokenUtilityFunction } from './auth/auth.jwt.service';
+import { doubleCsrf } from 'csrf-csrf';
+
+export const { doubleCsrfProtection, generateCsrfToken } = doubleCsrf({
+  getSecret: () => process.env.SECRET_CSRF_KEY as string,
+  // Use the ID your middleware attached to req['user']
+  getSessionIdentifier: (req) => {
+    return req['user'].id || 'guest'; // Fallback to 'guest' for logged-out users
+  },
+  cookieName: '__Host-psifi.x-csrf-token',
+  cookieOptions: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  },
+  getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'],
+});
+
+// Using the csrf middleware globally
+// app.use(doubleCsrfProtection);
 
 @Module({
   imports: [
@@ -58,6 +81,16 @@ import { JwtTokenUtilityFunction } from './auth/auth.jwt.service';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JWTParserMiddleware).exclude('auth');
+    consumer
+      .apply(JWTParserMiddleware)
+      .exclude({
+        path: 'auth/*path' /** (.*) is regex. It means to catch everything after 'auth/' */,
+        method: RequestMethod.ALL,
+      })
+      .forRoutes('*');
+    consumer
+      .apply(doubleCsrfProtection)
+      .exclude({ path: 'auth/csrf-token', method: RequestMethod.GET })
+      .forRoutes('*');
   }
 }

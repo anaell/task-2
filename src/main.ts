@@ -12,9 +12,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // To enable cors
-  app.enableCors({ origin: '*' });
-  app.use(cookieParser());
+  app.enableCors({ origin: '*' /*credentials: true*/ });
+  app.use(cookieParser(process.env.SECRET_COOKIE_KEY));
 
+  // This is to enable global validation of DTOs and to customize the error response format
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // Strips properties not in the DTO

@@ -28,10 +28,16 @@ export class JwtTokenUtilityFunction {
     } catch (error: any) {
       if (error.name === 'TokenExpiredError') {
         // Specific message for expired tokens
-        throw new UnauthorizedException('Token has expired');
+        throw new UnauthorizedException({
+          status: 'error',
+          message: 'Token has expired',
+        });
       }
       // General message for tampered/invalid tokens
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException({
+        status: 'error',
+        message: 'Invalid token',
+      });
     }
   }
 

@@ -25,3 +25,14 @@ export class LogoutEndpointDTO {
   @IsNotEmpty({ message: 'refresh_token is empty (input token value).' })
   refresh_token!: string;
 }
+
+export class GitHubCliDTO {
+  @IsString()
+  code!: string;
+
+  @IsString()
+  state!: string;
+
+  @IsString()
+  code_verifier!: string;
+}
